@@ -1,0 +1,133 @@
+<html>
+    <head>
+    <style>
+        body {
+        margin: 0;
+        overflow: hidden;
+        }
+    </style>
+    </head>
+    <body>
+        <script type = "module">
+        import * as THREE from "https://web.cs.manchester.ac.uk/three/three.js-master/build/three.module.js";
+        import {OrbitControls} from "https://web.cs.manchester.ac.uk/three/three.js-master/examples/jsm/controls/OrbitControls.js";
+        var camera, scene, renderer;
+        var sunGeometry, sunMaterial, sunMesh, sunTexture;
+        var plight, alight;
+        var moonGeometry, moonMaterial, moonMesh, moonTexture;
+        var earthGeometry, earthMaterial, earthMesh, earthTexture;
+        var curve, curveMaterial, curveGeometry, curveEllipse;
+        var earthSystem, point, t, controls;
+        const w = 15.04108;
+        const moonSpeed = 18.85;
+        const moonOrbitRadius = 40;
+
+        function init() {
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+                camera.position.x = 0;
+                camera.position.y = 30;
+                camera.position.z = 500;
+                renderer = new THREE.WebGLRenderer();
+                renderer.setClearColor(0x000000, 1.0);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                document.body.appendChild(renderer.domElement);
+                controls = new OrbitControls(camera, renderer.domElement);
+                controls.autoRotate = true;
+                Sun();
+                Moon();
+                Earth();
+                System();
+                Orbit();
+            }
+        
+        function Sun() {
+            /*arg1: radius
+            arg2: width
+            arg3: height
+            Object created is located at the center of the screen
+            */
+            sunGeometry = new THREE.SphereGeometry(109, 400, 200);
+            const loader = new THREE.TextureLoader();
+            sunTexture =  loader.load("sunTexture.jpg")
+            sunMaterial = new THREE.MeshStandardMaterial({emissive: 0xffd700, 
+                                                        emissiveMap: sunTexture, 
+                                                        emissiveIntensity: 1,
+                                                        wireframe: false
+                                                        });
+            sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
+            scene.add(sunMesh);
+            PointLight();
+            AmbientLight();
+        }
+
+        function PointLight() {
+            plight = new THREE.PointLight(0xffffff, 2, 0, 2);
+            plight.position.set(0, 0, 0);
+            scene.add(plight);
+        }
+
+        function AmbientLight() {
+            alight = new THREE.AmbientLight(0x404040);
+            scene.add(alight);
+        }
+
+        function Moon() {
+            moonGeometry = new THREE.SphereGeometry(5, 40, 20);
+            const loader = new THREE.TextureLoader();
+            moonTexture = loader.load("moonTexture.jpg")
+            moonMaterial = new THREE.MeshPhongMaterial({map: moonTexture
+                                                        });
+            moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
+        }
+
+        function Earth() {
+            earthGeometry = new THREE.SphereGeometry(25, 50, 50);
+            const loader = new THREE.TextureLoader();
+            earthTexture = loader.load("earthTexture.jpg")
+            earthMaterial = new THREE.MeshPhongMaterial({map: earthTexture
+                                                        });
+            earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+        }
+
+        function System() {
+            earthSystem = new THREE.Group();
+            earthSystem.add(earthMesh);
+            earthSystem.add(moonMesh);
+            moonMesh.position.set(50, 0, 0);
+            scene.add(earthSystem);
+        }
+
+        function Orbit() {
+            curve = new THREE.EllipseCurve(earthSystem.position.x + 150, earthSystem.position.z, 550, 180, 0, 2 * Math.PI);
+            var points = curve.getPoints(100);
+            curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            curveMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+
+            // Create the final ellipse curve to add to the scene
+            curveEllipse = new THREE.Line(curveGeometry, curveMaterial);
+
+            // Rotate the curveEllipse to be on XZ insted of XY and add to the scene
+            curveEllipse.rotation.x = 90 * Math.PI / 180;
+            scene.add(curveEllipse);
+        }
+
+        function animate() {
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            earthMesh.rotation.y += 0.02;
+
+            t = 0.0001 * performance.now();
+            t = t % 1;
+            point = curve.getPoint(t);
+            earthSystem.position.x = point.x
+            earthSystem.position.z = point.y
+            moonMesh.position.x = moonOrbitRadius * Math.cos(t * moonSpeed);
+            moonMesh.position.z = moonOrbitRadius * Math.sin(t * moonSpeed);
+        }
+
+        init();
+        animate();
+        </script>
+    </body>
+</html>
