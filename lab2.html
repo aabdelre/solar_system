@@ -16,8 +16,15 @@
         var plight, alight;
         var moonGeometry, moonMaterial, moonMesh, moonTexture;
         var earthGeometry, earthMaterial, earthMesh, earthTexture;
-        var curve, curveMaterial, curveGeometry, curveEllipse;
-        var earthSystem, point, t, controls;
+        var earthCurve, earthCurveMaterial, earthCurveGeometry, earthCurveEllipse;
+        var mercuryGeometry, mercuryMaterial, mercuryMesh, mercuryTexture;
+        var mercuryCurve, mercuryCurveMaterial, mercuryCurveGeometry, mercuryCurveEllipse;
+        var venusGeometry, venusMaterial, venusMesh, venusTexture;
+        var venusCurve, venusCurveMaterial, venusCurveGeometry, venusCurveEllipse;
+        var marsGeometry, marsMaterial, marsMesh, marsTexture;
+        var marsCurve, marsCurveMaterial, marsCurveGeometry, marsCurveEllipse;
+        var systemT, venusT, mercuryT, marsT;
+        var earthSystem, systemPoint, mercuryPoint, venusPoint, marsPoint, controls;
         const w = 15.04108;
         const moonSpeed = 18.85;
         const moonOrbitRadius = 40;
@@ -27,7 +34,7 @@
                 camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
                 camera.position.x = 0;
                 camera.position.y = 30;
-                camera.position.z = 500;
+                camera.position.z = 700;
                 renderer = new THREE.WebGLRenderer();
                 renderer.setClearColor(0x000000, 1.0);
                 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -35,10 +42,13 @@
                 controls = new OrbitControls(camera, renderer.domElement);
                 controls.autoRotate = true;
                 Sun();
+                Mercury();
+                Venus();
                 Moon();
                 Earth();
+                Mars();
                 System();
-                Orbit();
+                SystemOrbit();
             }
         
         function Sun() {
@@ -72,6 +82,75 @@
             scene.add(alight);
         }
 
+        function Mercury() {
+            mercuryGeometry = new THREE.SphereGeometry(20, 40, 40);
+            const loader = new THREE.TextureLoader();
+            mercuryTexture = loader.load("mercuryTexture.jpg");
+            mercuryMaterial = new THREE.MeshPhongMaterial({map:mercuryTexture
+                                                        });
+            mercuryMesh = new THREE.Mesh(mercuryGeometry, mercuryMaterial);
+            mercuryMesh.position.set(400, 0, 0);
+            scene.add(mercuryMesh);
+
+            mercuryCurve = new THREE.EllipseCurve(mercuryMesh.position.x - 300, mercuryMesh.position.z, 300, 150, 0, 2 * Math.PI);
+            var points = mercuryCurve.getPoints(100);
+            mercuryCurveGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            mercuryCurveMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+
+            // Create the final ellipse mercuryCurve to add to the scene
+            mercuryCurveEllipse = new THREE.Line(mercuryCurveGeometry, mercuryCurveMaterial);
+
+            // Rotate the mercurycurveEllipse to be on XZ insted of XY and add to the scene
+            mercuryCurveEllipse.rotation.x = 90 * Math.PI / 180;
+            scene.add(mercuryCurveEllipse);
+        }
+
+        function Venus() {
+            venusGeometry = new THREE.SphereGeometry(20, 40, 40);
+            const loader = new THREE.TextureLoader();
+            venusTexture = loader.load("venusTexture.jpg");
+            venusMaterial = new THREE.MeshPhongMaterial({map: venusTexture
+                                                        });
+            venusMesh = new THREE.Mesh(venusGeometry, venusMaterial);
+            venusMesh.position.set(550, 0, 0);
+            scene.add(venusMesh);
+
+            venusCurve = new THREE.EllipseCurve(venusMesh.position.x - 400, venusMesh.position.z, 400, 210, 0, 2 * Math.PI);
+            var points = venusCurve.getPoints(100);
+            venusCurveGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            venusCurveMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+
+            // Create the final ellipse mercuryCurve to add to the scene
+            venusCurveEllipse = new THREE.Line(venusCurveGeometry, venusCurveMaterial);
+
+            // Rotate the mercurycurveEllipse to be on XZ insted of XY and add to the scene
+            venusCurveEllipse.rotation.x = 90 * Math.PI / 180;
+            scene.add(venusCurveEllipse);
+        }
+
+        function Mars() {
+            marsGeometry = new THREE.SphereGeometry(20, 40, 40);
+            const loader = new THREE.TextureLoader();
+            marsTexture = loader.load("marsTexture.jpg");
+            marsMaterial = new THREE.MeshPhongMaterial({map:marsTexture
+                                                        });
+            marsMesh = new THREE.Mesh(marsGeometry, marsMaterial);
+            marsMesh.position.set(850, 0, 0);
+            scene.add(marsMesh);
+
+            marsCurve = new THREE.EllipseCurve(marsMesh.position.x - 630, marsMesh.position.z, 630, 340, 0, 2 * Math.PI);
+            var points = marsCurve.getPoints(100);
+            marsCurveGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            marsCurveMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+
+            // Create the final ellipse mercuryCurve to add to the scene
+            marsCurveEllipse = new THREE.Line(marsCurveGeometry, marsCurveMaterial);
+
+            // Rotate the mercurycurveEllipse to be on XZ insted of XY and add to the scene
+            marsCurveEllipse.rotation.x = 90 * Math.PI / 180;
+            scene.add(marsCurveEllipse);
+        }
+
         function Moon() {
             moonGeometry = new THREE.SphereGeometry(5, 40, 20);
             const loader = new THREE.TextureLoader();
@@ -98,32 +177,55 @@
             scene.add(earthSystem);
         }
 
-        function Orbit() {
-            curve = new THREE.EllipseCurve(earthSystem.position.x + 150, earthSystem.position.z, 550, 180, 0, 2 * Math.PI);
-            var points = curve.getPoints(100);
-            curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
-            curveMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+        function SystemOrbit() {
+            earthCurve = new THREE.EllipseCurve(earthSystem.position.x + 170, earthSystem.position.z, 500, 290, 0, 2 * Math.PI);
+            var points = earthCurve.getPoints(100);
+            earthCurveGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            earthCurveMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
 
-            // Create the final ellipse curve to add to the scene
-            curveEllipse = new THREE.Line(curveGeometry, curveMaterial);
+            // Create the final ellipse earthCurve to add to the scene
+            earthCurveEllipse = new THREE.Line(earthCurveGeometry, earthCurveMaterial);
 
             // Rotate the curveEllipse to be on XZ insted of XY and add to the scene
-            curveEllipse.rotation.x = 90 * Math.PI / 180;
-            scene.add(curveEllipse);
+            earthCurveEllipse.rotation.x = 90 * Math.PI / 180;
+            scene.add(earthCurveEllipse);
         }
 
         function animate() {
             renderer.render(scene, camera);
             requestAnimationFrame(animate);
-            earthMesh.rotation.y += 0.02;
+            earthMesh.rotation.y += 0.01;
+            mercuryMesh.rotation.y += 0.01;
+            venusMesh.rotation.y += 0.01;
+            marsMesh.rotation.y += 0.01;
 
-            t = 0.0001 * performance.now();
-            t = t % 1;
-            point = curve.getPoint(t);
-            earthSystem.position.x = point.x
-            earthSystem.position.z = point.y
-            moonMesh.position.x = moonOrbitRadius * Math.cos(t * moonSpeed);
-            moonMesh.position.z = moonOrbitRadius * Math.sin(t * moonSpeed);
+            systemT = 0.0001 * performance.now();
+            systemT = systemT % 1;
+            mercuryT = 0.0002 * performance.now();
+            mercuryT = mercuryT % 1;
+            venusT = 0.00021 * performance.now();
+            venusT = venusT % 1;
+            marsT = 0.00011 * performance.now();
+            marsT = marsT % 1;
+
+            mercuryPoint = mercuryCurve.getPoint(mercuryT);
+            mercuryMesh.position.x = mercuryPoint.x;
+            mercuryMesh.position.z = mercuryPoint.y;
+
+            systemPoint = earthCurve.getPoint(systemT);
+            earthSystem.position.x = systemPoint.x;
+            earthSystem.position.z = systemPoint.y;
+
+            venusPoint = venusCurve.getPoint(venusT);
+            venusMesh.position.x = venusPoint.x;
+            venusMesh.position.z = venusPoint.y;
+
+            marsPoint = marsCurve.getPoint(marsT);
+            marsMesh.position.x = marsPoint.x;
+            marsMesh.position.z = marsPoint.y;
+
+            moonMesh.position.x = moonOrbitRadius * Math.cos(systemT * moonSpeed);
+            moonMesh.position.z = moonOrbitRadius * Math.sin(systemT * moonSpeed);
         }
 
         init();
